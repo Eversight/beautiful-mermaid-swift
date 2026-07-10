@@ -105,7 +105,14 @@ public class LabelRenderer {
         context.saveGState()
 
         #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        // NSStringDrawing renders into UIKit's *current* graphics context. On
+        // the background raster queue (`MermaidLayer.requestRaster`) we draw
+        // into a bare CGContext with no current context, so without pushing
+        // one, `draw(in:)` is a silent no-op and every label disappears. The
+        // UIGraphics context stack is thread-local, so this is safe off-main.
+        UIGraphicsPushContext(context)
         attributedString.draw(in: rect)
+        UIGraphicsPopContext()
         #elseif canImport(AppKit)
         let centerY = rect.midY
         context.translateBy(x: 0, y: centerY)

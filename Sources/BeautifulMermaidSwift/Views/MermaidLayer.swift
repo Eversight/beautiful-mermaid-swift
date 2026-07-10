@@ -53,7 +53,17 @@ public class MermaidLayer: CALayer {
     /// Called on the main thread after the diagram is prepared (parsed + laid
     /// out) or after preparation failed. Not called for theme-only changes,
     /// which affect drawing but not geometry.
+    ///
+    /// Consumers may freely replace this; the owning view's contents pipeline
+    /// runs on a separate internal hook and cannot be disconnected by it.
     public var onPrepareComplete: (() -> Void)?
+
+    /// Reserved for the owning `MermaidView`'s contents pipeline; fired before
+    /// `onPrepareComplete`. Kept separate from the public hook because
+    /// consumers replacing `onPrepareComplete` used to silently disconnect the
+    /// view from its own layer — a recycled cell that cleared and re-set
+    /// `source` then never repopulated `layer.contents` and stayed blank.
+    package var onPrepareCompleteForView: (() -> Void)?
 
     // MARK: - Pipeline state
 
@@ -217,11 +227,15 @@ public class MermaidLayer: CALayer {
             positionedGraph = nil
             preparedDiagram = nil
             diagramBounds = .zero
+            // Content changed to "nothing": bump so in-flight rasters of the
+            // old diagram are dropped at delivery instead of resurrecting it.
+            contentGeneration &+= 1
         case .failure(let error):
             parseError = error
             positionedGraph = nil
             preparedDiagram = nil
             diagramBounds = .zero
+            contentGeneration &+= 1
         case .success(let (graph, positioned)):
             parseError = nil
             parsedGraph = graph
@@ -231,6 +245,7 @@ public class MermaidLayer: CALayer {
         }
 
         setNeedsDisplay()
+        onPrepareCompleteForView?()
         onPrepareComplete?()
     }
 
@@ -256,11 +271,18 @@ public class MermaidLayer: CALayer {
     /// Raster deliveries are tagged with it so stale images are dropped.
     package private(set) var contentGeneration = 0
 
-    /// Number of rasterizations actually performed (test/diagnostic hook).
+    /// Number of raster images actually delivered (test/diagnostic hook).
     package private(set) var rasterRenderCount = 0
 
-    private var lastDeliveredKey: (generation: Int, width: Int, height: Int)?
-    private var inflightKey: (generation: Int, width: Int, height: Int)?
+    /// Monotonic id of the most recent accepted raster request. The prepare
+    /// queue is concurrent, so completions can land out of order; only the
+    /// newest request may deliver. Without this, an older smaller-size raster
+    /// finishing late overwrote a newer crisp one and the view GPU-stretched
+    /// the low-res image — the "sometimes blurry" bug.
+    private var rasterSequence = 0
+    /// The newest requested (content, pixel size) — dedups repeated layout
+    /// passes asking for the state that is already in flight or on screen.
+    private var lastRequestedKey: (generation: Int, width: Int, height: Int)?
 
     /// Rasterizes the prepared diagram at the given pixel size on the
     /// preparation queue and delivers the image on the main thread.
@@ -282,35 +304,45 @@ public class MermaidLayer: CALayer {
         let width = Int(pixelSize.width.rounded()), height = Int(pixelSize.height.rounded())
         guard width > 0, height > 0 else { return }
         let key = (contentGeneration, width, height)
-        if let done = lastDeliveredKey, done == key { return }
-        if let inflight = inflightKey, inflight == key { return }
-        inflightKey = key
+        // This exact content+size is already the newest desired state (in
+        // flight or delivered) — nothing to do. Any *different* request resets
+        // the sequence below, so an interleaved A→B→A correctly re-renders A.
+        if let requested = lastRequestedKey, requested == key { return }
+        lastRequestedKey = key
+        rasterSequence &+= 1
+        let sequence = rasterSequence
 
         MermaidLayer.prepareQueue.addOperation { [weak self] in
+            var image: CGImage?
             let info = CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
-            guard let ctx = CGContext(
+            if let ctx = CGContext(
                 data: nil, width: width, height: height,
                 bitsPerComponent: 8, bytesPerRow: 0,
                 space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: info
-            ) else { return }
-
-            // The raster holds only the diagram over a transparent background;
-            // the view's layer background shows through, so transparent themes
-            // need no special handling. Flip to the renderer's top-left origin.
-            let scaleX = CGFloat(width) / bounds.width
-            let scaleY = CGFloat(height) / bounds.height
-            ctx.translateBy(x: 0, y: CGFloat(height))
-            ctx.scaleBy(x: scaleX, y: -scaleY)
-            ctx.translateBy(x: -bounds.minX, y: -bounds.minY)
-            prepared.render(ctx, bounds)
-            let image = ctx.makeImage()
+            ) {
+                // The raster holds only the diagram over a transparent background;
+                // the view's layer background shows through, so transparent themes
+                // need no special handling. Flip to the renderer's top-left origin.
+                let scaleX = CGFloat(width) / bounds.width
+                let scaleY = CGFloat(height) / bounds.height
+                ctx.translateBy(x: 0, y: CGFloat(height))
+                ctx.scaleBy(x: scaleX, y: -scaleY)
+                ctx.translateBy(x: -bounds.minX, y: -bounds.minY)
+                prepared.render(ctx, bounds)
+                image = ctx.makeImage()
+            }
 
             DispatchQueue.main.async {
                 guard let self else { return }
-                self.inflightKey = nil
-                guard key.0 == self.contentGeneration, let image else { return }
+                // Last-request-wins: deliver only if this is still the newest
+                // request and the content hasn't changed since it was made.
+                guard sequence == self.rasterSequence, key.0 == self.contentGeneration else { return }
+                guard let image else {
+                    // Bitmap creation failed; un-latch so a future pass retries.
+                    self.lastRequestedKey = nil
+                    return
+                }
                 self.rasterRenderCount += 1
-                self.lastDeliveredKey = key
                 completion(image)
             }
         }

@@ -61,7 +61,11 @@ public class MermaidView: UIView {
         // Animation; interim resizes GPU-scale the existing image and a
         // crisp re-raster follows at the new size.
         layer.contentsGravity = .resizeAspect
-        mermaidLayer.onPrepareComplete = { [weak self] in
+        // The internal hook, NOT `onPrepareComplete`: consumers replace the
+        // public hook (it's a documented extension point), and when the view's
+        // pipeline lived there such a replacement silently disconnected
+        // contents updates — recycled cells came back blank.
+        mermaidLayer.onPrepareCompleteForView = { [weak self] in
             guard let self else { return }
             self.invalidateIntrinsicContentSize()
             self.contentsDidChange()
@@ -176,7 +180,11 @@ public class MermaidView: NSView {
         layerContentsRedrawPolicy = .never
         layer?.contentsGravity = .resizeAspect
         layer?.backgroundColor = mermaidLayer.theme.background.cgColor
-        mermaidLayer.onPrepareComplete = { [weak self] in
+        // The internal hook, NOT `onPrepareComplete`: consumers replace the
+        // public hook (it's a documented extension point), and when the view's
+        // pipeline lived there such a replacement silently disconnected
+        // contents updates — recycled cells came back blank.
+        mermaidLayer.onPrepareCompleteForView = { [weak self] in
             guard let self else { return }
             self.invalidateIntrinsicContentSize()
             self.contentsDidChange()
