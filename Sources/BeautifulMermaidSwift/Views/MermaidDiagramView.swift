@@ -26,11 +26,16 @@ public struct MermaidDiagramView: UIViewRepresentable {
         self._diagramBounds = diagramBounds
     }
 
+    public func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
     public func makeUIView(context: Context) -> MermaidView {
         let view = MermaidView()
         view.theme = theme
         view.layoutConfig = layoutConfig
         view.source = source
+        context.coordinator.bind(view: view, parseError: $parseError, diagramBounds: $diagramBounds)
         return view
     }
 
@@ -38,19 +43,13 @@ public struct MermaidDiagramView: UIViewRepresentable {
         if view.theme != theme {
             view.theme = theme
         }
-
         if view.layoutConfig != layoutConfig {
             view.layoutConfig = layoutConfig
         }
-
         if view.source != source {
             view.source = source
         }
-
-        DispatchQueue.main.async {
-            parseError = view.parseError
-            diagramBounds = view.diagramBounds
-        }
+        context.coordinator.rebind(parseError: $parseError, diagramBounds: $diagramBounds)
     }
 }
 
@@ -80,11 +79,16 @@ public struct MermaidDiagramView: NSViewRepresentable {
         self._diagramBounds = diagramBounds
     }
 
+    public func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
     public func makeNSView(context: Context) -> MermaidView {
         let view = MermaidView()
         view.theme = theme
         view.layoutConfig = layoutConfig
         view.source = source
+        context.coordinator.bind(view: view, parseError: $parseError, diagramBounds: $diagramBounds)
         return view
     }
 
@@ -92,20 +96,62 @@ public struct MermaidDiagramView: NSViewRepresentable {
         if view.theme != theme {
             view.theme = theme
         }
-
         if view.layoutConfig != layoutConfig {
             view.layoutConfig = layoutConfig
         }
-
         if view.source != source {
             view.source = source
         }
-
-        DispatchQueue.main.async {
-            parseError = view.parseError
-            diagramBounds = view.diagramBounds
-        }
+        context.coordinator.rebind(parseError: $parseError, diagramBounds: $diagramBounds)
     }
 }
 
+#endif
+
+#if canImport(UIKit) || canImport(AppKit)
+extension MermaidDiagramView {
+    /// Pushes preparation state (parse errors, diagram geometry) into the
+    /// SwiftUI bindings when — and only when — it actually changes.
+    ///
+    /// The previous wrapper wrote both bindings on every `update…View` cycle,
+    /// which re-invalidated ancestor views each pass, and it *polled*: state
+    /// arriving from the background preparation queue between update cycles
+    /// was not published until some unrelated update happened to run. This
+    /// coordinator is event-driven via `MermaidView.onStateChange` instead.
+    public final class Coordinator {
+        private var parseError: Binding<Error?>?
+        private var diagramBounds: Binding<CGRect>?
+        private var lastBounds: CGRect = .null
+        private var lastHadError: Bool?
+
+        func bind(view: MermaidView, parseError: Binding<Error?>, diagramBounds: Binding<CGRect>) {
+            self.parseError = parseError
+            self.diagramBounds = diagramBounds
+            view.onStateChange = { [weak self] error, bounds in
+                self?.push(error: error, bounds: bounds)
+            }
+        }
+
+        func rebind(parseError: Binding<Error?>, diagramBounds: Binding<CGRect>) {
+            self.parseError = parseError
+            self.diagramBounds = diagramBounds
+        }
+
+        private func push(error: Error?, bounds: CGRect) {
+            let hadError = error != nil
+            let boundsChanged = bounds != lastBounds
+            let errorChanged = hadError != lastHadError
+            guard boundsChanged || errorChanged else { return }
+            lastBounds = bounds
+            lastHadError = hadError
+
+            // Never mutate SwiftUI state from inside a view update pass; the
+            // preparation callback can fire synchronously for empty sources.
+            DispatchQueue.main.async { [self] in
+                if errorChanged { parseError?.wrappedValue = error }
+                if boundsChanged { diagramBounds?.wrappedValue = bounds }
+            }
+        }
+    }
+}
 #endif

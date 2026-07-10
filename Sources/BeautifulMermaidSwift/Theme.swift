@@ -349,14 +349,14 @@ extension DiagramTheme {
     /// - `editor.selectionBackground` → surface
     /// - `editorWidget.border` → border
     public static func fromShikiTheme(_ theme: ShikiTheme) -> DiagramTheme {
-        let shikiInput = original_src_theme.ShikiThemeLike(
+        let shikiInput = CoreTheme.ShikiThemeLike(
             type: theme.type,
             colors: theme.colors,
             tokenColors: theme.tokenColors.map {
-                original_src_theme.ShikiTokenColor(scope: $0.scope, foreground: $0.foreground)
+                CoreTheme.ShikiTokenColor(scope: $0.scope, foreground: $0.foreground)
             }
         )
-        let colors = original_src_theme.fromShikiTheme(shikiInput)
+        let colors = CoreTheme.fromShikiTheme(shikiInput)
         return DiagramTheme(
             background: BMColor(hex: colors.bg),
             foreground: BMColor(hex: colors.fg),

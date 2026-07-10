@@ -22,8 +22,7 @@ final class VerificationStepExporterTests: XCTestCase {
 
         let diagramsPath = (inputDir as NSString).appendingPathComponent("test-diagrams.json")
         guard FileManager.default.fileExists(atPath: diagramsPath) else {
-            XCTFail("Missing verification input: \(diagramsPath)")
-            return
+            throw XCTSkip("verification corpus not present: \(diagramsPath)")
         }
 
         let data = try Data(contentsOf: URL(fileURLWithPath: diagramsPath))

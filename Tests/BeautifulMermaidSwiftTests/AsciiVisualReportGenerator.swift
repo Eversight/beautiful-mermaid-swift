@@ -41,8 +41,7 @@ final class AsciiVisualReportGenerator: XCTestCase {
 
         let diagramsPath = (root as NSString).appendingPathComponent("verification/shared/test-diagrams.json")
         guard FileManager.default.fileExists(atPath: diagramsPath) else {
-            XCTFail("Missing test-diagrams.json at \(diagramsPath)")
-            return
+            throw XCTSkip("verification corpus not present: \(diagramsPath)")
         }
 
         let data = try Data(contentsOf: URL(fileURLWithPath: diagramsPath))
@@ -73,11 +72,11 @@ final class AsciiVisualReportGenerator: XCTestCase {
             var swiftError: String? = nil
 
             do {
-                swiftPlain = try original_src_ascii_index.renderMermaidASCII(
+                swiftPlain = try AsciiIndex.renderMermaidASCII(
                     diagram.source,
                     options: .init(colorMode: .explicit(.none))
                 )
-                swiftHtml = try original_src_ascii_index.renderMermaidASCII(
+                swiftHtml = try AsciiIndex.renderMermaidASCII(
                     diagram.source,
                     options: .init(colorMode: .explicit(.html))
                 )

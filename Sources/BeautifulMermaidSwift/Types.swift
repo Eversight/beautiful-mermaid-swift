@@ -11,7 +11,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
-public typealias ParsedGraphModel = original_src_types.MermaidGraph
+public typealias ParsedGraphModel = CoreTypes.MermaidGraph
 
 /// Type-safe diagram payload. Use pattern matching to access the parsed model.
 public enum DiagramPayload: Sendable {

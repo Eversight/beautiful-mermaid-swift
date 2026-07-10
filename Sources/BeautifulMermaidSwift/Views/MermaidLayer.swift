@@ -20,31 +20,70 @@ public struct PreparedDiagram {
 }
 
 /// A CALayer subclass that manages the Mermaid diagram rendering pipeline:
-/// parse -> layout -> draw.
+/// parse → layout → draw, with staged invalidation so each input change does
+/// only the work it actually requires:
+///
+/// - `source`        → parse + layout + draw (parse/layout on a background queue)
+/// - `layoutConfig`  → layout + draw (reuses the parsed graph)
+/// - `theme`         → draw only (colors are a render-time concern; changing
+///                     them re-parsed and re-laid-out the whole diagram before,
+///                     stalling the main thread ~26 ms on an 80-node graph)
 public class MermaidLayer: CALayer {
 
     // MARK: - Public Properties
 
     public var source: String = "" {
         didSet {
-            if source != oldValue { prepareDiagram() }
+            if source != oldValue { prepareAsync(.parse) }
         }
     }
 
     public var theme: DiagramTheme = .default {
-        didSet { prepareDiagram() }
+        didSet { rebuildRenderClosure() }
     }
 
     public var layoutConfig: LayoutConfig = LayoutConfig() {
-        didSet { prepareDiagram() }
+        didSet { prepareAsync(.layout) }
     }
 
     public private(set) var parseError: Error?
     public private(set) var diagramBounds: CGRect = .zero
     public private(set) var preparedDiagram: PreparedDiagram?
 
-    /// Called after the diagram is prepared (parsed + laid out).
+    /// Called on the main thread after the diagram is prepared (parsed + laid
+    /// out) or after preparation failed. Not called for theme-only changes,
+    /// which affect drawing but not geometry.
     public var onPrepareComplete: (() -> Void)?
+
+    // MARK: - Pipeline state
+
+    private enum PrepareStage {
+        case parse   // source changed: parse + layout
+        case layout  // layout config changed: reuse parsed graph
+    }
+
+    /// The last successfully parsed graph (keyed by `source`).
+    private var parsedGraph: MermaidGraph?
+    /// The last successful layout (input to draw; theme-independent).
+    private var positionedGraph: PositionedGraph?
+
+    /// Shared bounded-width pool for parse/layout/raster work, so keystrokes
+    /// never stall the main thread. One layer's work never blocks behind a
+    /// whole document of other layers (a serial queue made typing latency
+    /// during document open grow linearly with block count: 17/76/207 ms at
+    /// 8/24/64 blocks). Width leaves headroom for the main thread and is
+    /// capped: prepare tasks are ms-scale and CPU-bound, so more width than
+    /// this only adds memory-bandwidth contention. Superseded runs are
+    /// detected via `generation` and discarded; out-of-order completion is
+    /// handled the same way, so ordering needs no serialization.
+    private static let prepareQueue: OperationQueue = {
+        let queue = OperationQueue()
+        queue.name = "beautiful-mermaid.prepare"
+        queue.qualityOfService = .userInitiated
+        queue.maxConcurrentOperationCount = max(2, min(ProcessInfo.processInfo.activeProcessorCount - 2, 8))
+        return queue
+    }()
+    private var generation = 0
 
     // MARK: - Initialization
 
@@ -138,33 +177,142 @@ public class MermaidLayer: CALayer {
 
     // MARK: - Private Methods
 
-    private func prepareDiagram() {
-        parseError = nil
-        preparedDiagram = nil
-        diagramBounds = .zero
+    /// Runs parse and/or layout off the main thread, then publishes the result
+    /// back on main. A newer request supersedes older in-flight ones.
+    private func prepareAsync(_ stage: PrepareStage) {
+        generation += 1
+        let expected = generation
+        let source = self.source
+        let layoutConfig = self.layoutConfig
+        let reusableGraph = stage == .layout ? parsedGraph : nil
 
         guard !source.isEmpty else {
-            setNeedsDisplay()
-            onPrepareComplete?()
+            parsedGraph = nil
+            publish(generation: expected, result: nil)
             return
         }
 
-        do {
-            let graph = try MermaidParser.parse(source)
-            let layout = GraphLayout(config: layoutConfig)
-            let positioned = try layout.layout(graph)
-            let renderer = DiagramRenderer(theme: theme)
-
-            let bounds = CGRect(x: 0, y: 0, width: max(1, positioned.width), height: max(1, positioned.height))
-            preparedDiagram = PreparedDiagram(bounds: bounds) { context, renderBounds in
-                renderer.render(positioned, in: context, bounds: renderBounds)
+        MermaidLayer.prepareQueue.addOperation { [weak self] in
+            let result: Result<(MermaidGraph, PositionedGraph), Error>
+            do {
+                let graph = try reusableGraph ?? MermaidParser.parse(source)
+                let positioned = try GraphLayout(config: layoutConfig).layout(graph)
+                result = .success((graph, positioned))
+            } catch {
+                result = .failure(error)
             }
-            diagramBounds = bounds
-        } catch {
+            DispatchQueue.main.async {
+                self?.publish(generation: expected, result: result)
+            }
+        }
+    }
+
+    /// Main-thread publication of a prepare result. Stale generations are dropped.
+    private func publish(generation: Int, result: Result<(MermaidGraph, PositionedGraph), Error>?) {
+        guard generation == self.generation else { return }
+
+        switch result {
+        case nil:
+            parseError = nil
+            positionedGraph = nil
+            preparedDiagram = nil
+            diagramBounds = .zero
+        case .failure(let error):
             parseError = error
+            positionedGraph = nil
+            preparedDiagram = nil
+            diagramBounds = .zero
+        case .success(let (graph, positioned)):
+            parseError = nil
+            parsedGraph = graph
+            positionedGraph = positioned
+            diagramBounds = CGRect(x: 0, y: 0, width: max(1, positioned.width), height: max(1, positioned.height))
+            rebuildRenderClosure()
         }
 
         setNeedsDisplay()
         onPrepareComplete?()
+    }
+
+    /// Theme-only invalidation: rebuilds the draw closure around the existing
+    /// geometry. No parsing, no layout, no main-thread stall.
+    private func rebuildRenderClosure() {
+        guard let positioned = positionedGraph else {
+            contentGeneration &+= 1
+            setNeedsDisplay()
+            return
+        }
+        let renderer = DiagramRenderer(theme: theme)
+        preparedDiagram = PreparedDiagram(bounds: diagramBounds) { context, renderBounds in
+            renderer.render(positioned, in: context, bounds: renderBounds)
+        }
+        contentGeneration &+= 1
+        setNeedsDisplay()
+    }
+
+    // MARK: - Async rasterization (the view contents pipeline)
+
+    /// Bumped whenever drawable content changes (new preparation or theme).
+    /// Raster deliveries are tagged with it so stale images are dropped.
+    package private(set) var contentGeneration = 0
+
+    /// Number of rasterizations actually performed (test/diagnostic hook).
+    package private(set) var rasterRenderCount = 0
+
+    private var lastDeliveredKey: (generation: Int, width: Int, height: Int)?
+    private var inflightKey: (generation: Int, width: Int, height: Int)?
+
+    /// Rasterizes the prepared diagram at the given pixel size on the
+    /// preparation queue and delivers the image on the main thread.
+    ///
+    /// This is the view pipeline's replacement for `draw(_:)`: the vector
+    /// command stream costs 3.9–19 ms *on the main thread* per invalidation
+    /// for an 80-node diagram (measured at view fit scales); rendering here
+    /// and compositing via `layer.contents` reduces the main thread's share
+    /// to an image assignment. Requests are coalesced per (content, pixel
+    /// size); stale generations and duplicate sizes are dropped.
+    package func requestRaster(
+        pixelSize: CGSize,
+        completion: @escaping (CGImage) -> Void
+    ) {
+        guard let prepared = preparedDiagram else { return }
+        let bounds = prepared.bounds
+        guard bounds.width > 0, bounds.height > 0 else { return }
+
+        let width = Int(pixelSize.width.rounded()), height = Int(pixelSize.height.rounded())
+        guard width > 0, height > 0 else { return }
+        let key = (contentGeneration, width, height)
+        if let done = lastDeliveredKey, done == key { return }
+        if let inflight = inflightKey, inflight == key { return }
+        inflightKey = key
+
+        MermaidLayer.prepareQueue.addOperation { [weak self] in
+            let info = CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
+            guard let ctx = CGContext(
+                data: nil, width: width, height: height,
+                bitsPerComponent: 8, bytesPerRow: 0,
+                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: info
+            ) else { return }
+
+            // The raster holds only the diagram over a transparent background;
+            // the view's layer background shows through, so transparent themes
+            // need no special handling. Flip to the renderer's top-left origin.
+            let scaleX = CGFloat(width) / bounds.width
+            let scaleY = CGFloat(height) / bounds.height
+            ctx.translateBy(x: 0, y: CGFloat(height))
+            ctx.scaleBy(x: scaleX, y: -scaleY)
+            ctx.translateBy(x: -bounds.minX, y: -bounds.minY)
+            prepared.render(ctx, bounds)
+            let image = ctx.makeImage()
+
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.inflightKey = nil
+                guard key.0 == self.contentGeneration, let image else { return }
+                self.rasterRenderCount += 1
+                self.lastDeliveredKey = key
+                completion(image)
+            }
+        }
     }
 }

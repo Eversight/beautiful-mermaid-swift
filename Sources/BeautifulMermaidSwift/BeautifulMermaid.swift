@@ -1,6 +1,6 @@
 import Foundation
 import CoreGraphics
-import ElkSwift
+import LayoutKernel
 #if targetEnvironment(macCatalyst)
 import UIKit
 #elseif canImport(UIKit)
@@ -19,7 +19,6 @@ public struct MermaidRenderer {
         theme: DiagramTheme = .default,
         scale: CGFloat = 2.0
     ) throws -> BMImage? {
-        _ = ElkSwift.version
         let renderer = MermaidImageRenderer(theme: theme)
         renderer.scale = scale
         return try renderer.renderImage(from: source)
@@ -31,14 +30,12 @@ public struct MermaidRenderer {
         size: CGSize,
         theme: DiagramTheme = .default
     ) throws -> BMImage? {
-        _ = ElkSwift.version
         let renderer = MermaidImageRenderer(theme: theme)
         return try renderer.renderImage(from: source, size: size)
     }
 
     /// Parse a Mermaid diagram without rendering.
     public static func parse(_ source: String) throws -> MermaidGraph {
-        _ = ElkSwift.version
         return try MermaidParser.parse(source)
     }
 
@@ -47,7 +44,6 @@ public struct MermaidRenderer {
         _ source: String,
         config: LayoutConfig = LayoutConfig()
     ) throws -> PositionedGraph {
-        _ = ElkSwift.version
         let graph = try MermaidParser.parse(source)
         let layout = GraphLayout(config: config)
         return try layout.layout(graph)
@@ -60,7 +56,6 @@ public struct MermaidRenderer {
         bounds: CGRect,
         theme: DiagramTheme = .default
     ) throws {
-        _ = ElkSwift.version
         // Direct CGContext render path (parse -> layout -> renderer) avoids
         // native SVG rasterization artifacts on macOS.
         //
@@ -88,7 +83,6 @@ extension MermaidRenderer {
         source: String,
         theme: DiagramTheme = .default
     ) throws -> String {
-        _ = ElkSwift.version
         let renderer = MermaidImageRenderer(theme: theme)
         return try renderer.renderSVG(from: source)
     }
@@ -100,16 +94,15 @@ extension MermaidRenderer {
         source: String,
         theme: DiagramTheme = .default
     ) throws -> String {
-        _ = ElkSwift.version
         let colors: [String: String] = [
             "fg": theme.foreground.hexString,
             "border": (theme.border ?? theme.foreground).hexString,
             "line": (theme.line ?? theme.foreground).hexString,
             "arrow": (theme.line ?? theme.foreground).hexString,
         ]
-        let asciiTheme = original_src_ascii_index.diagramColorsToAsciiTheme(colors)
-        let options = original_src_ascii_index.AsciiRenderOptions(theme: asciiTheme)
-        return try original_src_ascii_index.renderMermaidASCII(source, options: options)
+        let asciiTheme = AsciiIndex.diagramColorsToAsciiTheme(colors)
+        let options = AsciiIndex.AsciiRenderOptions(theme: asciiTheme)
+        return try AsciiIndex.renderMermaidASCII(source, options: options)
     }
 
     // MARK: - Async Variants

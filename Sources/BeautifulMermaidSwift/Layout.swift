@@ -8,7 +8,6 @@ public struct GraphLayout {
     }
 
     public func layout(_ graph: MermaidGraph) throws -> PositionedGraph {
-        _ = _ElkBridge.version
         switch graph.type {
         case .flowchart, .stateDiagram:
             return try layoutGraphSync(graph, config: config)

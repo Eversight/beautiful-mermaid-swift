@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 visual-report.html
 Package.resolved
+
+# Development-process records (perf ledger, design notes, review artifacts)
+docs/

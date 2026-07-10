@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 425.133 280" width="425.133" height="280" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+  }
+</style>
+<defs>
+  <marker id="seq-arrow" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 0, 8.0 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-open" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polyline points="0 0, 8.0 2.5, 0 5.0" fill="none" stroke="#27272A 85%, #FFFFFF))" stroke-width="1" />
+  </marker>
+</defs>
+<line class="lifeline" data-actor="U" x1="70.0" y1="70.0" x2="70.0" y2="250.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<line class="lifeline" data-actor="A" x1="210.0" y1="70.0" x2="210.0" y2="250.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<line class="lifeline" data-actor="D" x1="350.0" y1="70.0" x2="350.0" y2="250.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<g class="message" data-from="U" data-to="A" data-label="POST /login" data-line-style="solid" data-arrow-head="filled" data-self="false">
+  <line x1="70.0" y1="90.0" x2="210.0" y2="90.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow)" />
+  <text x="140.0" y="84.0" font-size="11.0" text-anchor="middle" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="3.8499999999999996">POST /login</text>
+</g>
+<g class="message" data-from="A" data-to="D" data-label="SELECT user" data-line-style="solid" data-arrow-head="filled" data-self="false">
+  <line x1="210.0" y1="130.0" x2="350.0" y2="130.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow)" />
+  <text x="280.0" y="124.0" font-size="11.0" text-anchor="middle" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="3.8499999999999996">SELECT user</text>
+</g>
+<g class="message" data-from="D" data-to="A" data-label="user row" data-line-style="dashed" data-arrow-head="filled" data-self="false">
+  <line x1="350.0" y1="170.0" x2="210.0" y2="170.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow)" />
+  <text x="280.0" y="164.0" font-size="11.0" text-anchor="middle" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="3.8499999999999996">user row</text>
+</g>
+<g class="message" data-from="A" data-to="U" data-label="200 OK + token" data-line-style="dashed" data-arrow-head="filled" data-self="false">
+  <line x1="210.0" y1="210.0" x2="70.0" y2="210.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow)" />
+  <text x="140.0" y="204.0" font-size="11.0" text-anchor="middle" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="3.8499999999999996">200 OK + token</text>
+</g>
+<g class="actor" data-id="U" data-label="User" data-type="participant">
+  <rect x="30.0" y="30.0" width="80.0" height="40.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="70.0" y="50.0" font-size="13.0" text-anchor="middle" font-weight="500" fill="#27272A" dy="4.55">User</text>
+</g>
+<g class="actor" data-id="A" data-label="API" data-type="participant">
+  <rect x="170.0" y="30.0" width="80.0" height="40.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="210.0" y="50.0" font-size="13.0" text-anchor="middle" font-weight="500" fill="#27272A" dy="4.55">API</text>
+</g>
+<g class="actor" data-id="D" data-label="Database" data-type="participant">
+  <rect x="304.867" y="30.0" width="90.26599999999999" height="40.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="350.0" y="50.0" font-size="13.0" text-anchor="middle" font-weight="500" fill="#27272A" dy="4.55">Database</text>
+</g>
+</svg>

@@ -3,9 +3,10 @@ import CoreGraphics
 
 /// A value-type model that manages the Mermaid diagram pipeline (parse -> layout -> render).
 ///
-/// Mutating `source`, `theme`, or `layoutConfig` re-runs the pipeline synchronously and refreshes
-/// `preparedDiagram`, `diagramBounds`, and `parseError`. Hold it in `@State` to drive a
-/// ``MermaidDiagramView``.
+/// Mutations run synchronously, and each input re-runs only the pipeline
+/// stages it affects: `source` re-parses and re-lays-out; `layoutConfig`
+/// re-lays-out the already-parsed graph; `theme` only swaps the draw colors
+/// (no parsing or layout). Hold it in `@State` to drive a ``MermaidDiagramView``.
 ///
 /// Usage:
 /// ```swift
@@ -19,20 +20,23 @@ import CoreGraphics
 public struct MermaidDiagram {
 
     public var source: String {
-        didSet { if source != oldValue { prepare() } }
+        didSet { if source != oldValue { reparse() } }
     }
 
     public var theme: DiagramTheme {
-        didSet { if theme != oldValue { prepare() } }
+        didSet { if theme != oldValue { rebuildRenderClosure() } }
     }
 
     public var layoutConfig: LayoutConfig {
-        didSet { if layoutConfig != oldValue { prepare() } }
+        didSet { if layoutConfig != oldValue { relayout() } }
     }
 
     public private(set) var parseError: Error?
     public private(set) var diagramBounds: CGRect = .zero
     public private(set) var preparedDiagram: PreparedDiagram?
+
+    private var parsedGraph: MermaidGraph?
+    private var positionedGraph: PositionedGraph?
 
     public init(
         source: String = "",
@@ -42,30 +46,54 @@ public struct MermaidDiagram {
         self.source = source
         self.theme = theme
         self.layoutConfig = layoutConfig
-        prepare()
+        reparse()
     }
 
-    private mutating func prepare() {
-        parseError = nil
+    private mutating func reparse() {
+        parsedGraph = nil
+        guard !source.isEmpty else {
+            clearOutputs(error: nil)
+            return
+        }
+        do {
+            parsedGraph = try MermaidParser.parse(source)
+            relayout()
+        } catch {
+            clearOutputs(error: error)
+        }
+    }
+
+    private mutating func relayout() {
+        guard let graph = parsedGraph else {
+            if !source.isEmpty { reparse() }
+            return
+        }
+        do {
+            positionedGraph = try GraphLayout(config: layoutConfig).layout(graph)
+            diagramBounds = CGRect(
+                x: 0, y: 0,
+                width: max(1, positionedGraph!.width),
+                height: max(1, positionedGraph!.height))
+            parseError = nil
+            rebuildRenderClosure()
+        } catch {
+            clearOutputs(error: error)
+        }
+    }
+
+    private mutating func rebuildRenderClosure() {
+        guard let positioned = positionedGraph else { return }
+        let renderer = DiagramRenderer(theme: theme)
+        preparedDiagram = PreparedDiagram(bounds: diagramBounds) { context, renderBounds in
+            renderer.render(positioned, in: context, bounds: renderBounds)
+        }
+    }
+
+    private mutating func clearOutputs(error: Error?) {
+        parseError = error
+        positionedGraph = nil
         preparedDiagram = nil
         diagramBounds = .zero
-
-        guard !source.isEmpty else { return }
-
-        do {
-            let graph = try MermaidParser.parse(source)
-            let layout = GraphLayout(config: layoutConfig)
-            let positioned = try layout.layout(graph)
-            let renderer = DiagramRenderer(theme: theme)
-
-            let bounds = CGRect(x: 0, y: 0, width: max(1, positioned.width), height: max(1, positioned.height))
-            preparedDiagram = PreparedDiagram(bounds: bounds) { context, renderBounds in
-                renderer.render(positioned, in: context, bounds: renderBounds)
-            }
-            diagramBounds = bounds
-        } catch {
-            parseError = error
-        }
     }
 }
 

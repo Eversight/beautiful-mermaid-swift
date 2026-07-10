@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 425.7221666666667 803.5989999999999" width="425.7221666666667" height="803.5989999999999" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8.0" markerHeight="5.0" refX="7.0" refY="2.5" orient="auto">
+    <polygon points="0 0, 8.0 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8.0" markerHeight="5.0" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8.0 0, 0 2.5, 8.0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<polyline class="edge" data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="231.207,76.9 231.207,124.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="B" data-to="C" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Yes" points="209.22383333333335,234.81583333333333 209.22383333333335,268.799 154.48899999999998,268.799 154.48899999999998,373.099" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="B" data-to="Z" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="No" points="253.19016666666667,234.8158333333333 253.19016666666667,268.799 314.7296666666667,268.799 314.7296666666667,546.399" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="C" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="154.48899999999998,409.999 154.48899999999998,433.999 90.24449999999999,433.999 90.24449999999999,457.999" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="C" data-to="E" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="154.48899999999998,409.999 154.48899999999998,433.999 218.7335,433.999 218.7335,457.999" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="D" data-to="G" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="90.24449999999999,494.899 90.24449999999999,520.649 154.489,520.649 154.489,546.399" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="E" data-to="G" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="218.7335,494.899 218.7335,520.649 154.489,520.649 154.489,546.399" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="G" data-to="I" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="154.489,597.2990000000001 154.489,641.799" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="I" data-to="J" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="154.489,678.699 154.489,702.699 228.55175000000003,702.699 228.55175000000003,726.699" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="Z" data-to="J" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="314.7296666666667,583.299 314.7296666666667,702.699 228.55175000000003,702.699 228.55175000000003,726.699" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<g class="edge-label" data-from="B" data-to="C" data-label="Yes">
+  <rect x="135.98899999999998" y="299.799" width="36.658" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="154.31799999999998" y="314.94899999999996" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">Yes</text>
+</g>
+<g class="edge-label" data-from="B" data-to="Z" data-label="No">
+  <rect x="299.2296666666667" y="376.399" width="30.718000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="314.58866666666665" y="391.549" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">No</text>
+</g>
+<g class="node" data-id="A" data-label="Client Request" data-shape="rectangle">
+  <rect x="168.3655" y="40.0" width="125.68299999999999" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="231.207" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Client Request</text>
+</g>
+<g class="node" data-id="B" data-label="Auth Valid?" data-shape="diamond">
+  <polygon points="231.207,124.9 297.1565,190.8495 231.207,256.799 165.2575,190.8495" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="231.207" y="190.8495" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Auth Valid?</text>
+</g>
+<g class="node" data-id="C" data-label="Load Balancer" data-shape="rectangle">
+  <rect x="89.42449999999998" y="373.099" width="130.12900000000002" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="154.48899999999998" y="391.549" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Load Balancer</text>
+</g>
+<g class="node" data-id="Z" data-label="401 Unauthorized" data-shape="rectangle">
+  <rect x="243.73716666666667" y="546.399" width="141.985" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="314.7296666666667" y="564.849" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">401 Unauthorized</text>
+</g>
+<g class="node" data-id="D" data-label="Service A" data-shape="rectangle">
+  <rect x="39.99999999999999" y="457.999" width="100.489" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="90.24449999999999" y="476.449" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Service A</text>
+</g>
+<g class="node" data-id="E" data-label="Service B" data-shape="rectangle">
+  <rect x="168.48899999999998" y="457.999" width="100.489" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="218.7335" y="476.449" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Service B</text>
+</g>
+<g class="node" data-id="G" data-label="Database" data-shape="cylinder">
+  <rect x="105.35600000000001" y="553.399" width="98.26599999999999" height="36.900000000000006" fill="#F9F9F9 3%, #FFFFFF))" stroke="none" />
+  <line x1="105.35600000000001" y1="553.399" x2="105.35600000000001" y2="590.299" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <line x1="203.622" y1="553.399" x2="203.622" y2="590.299" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <ellipse cx="154.489" cy="590.299" rx="49.132999999999996" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <ellipse cx="154.489" cy="553.399" rx="49.132999999999996" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="154.489" y="571.849" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Database</text>
+</g>
+<g class="node" data-id="I" data-label="Response Builder" data-shape="rectangle">
+  <rect x="80.5325" y="641.799" width="147.913" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="154.489" y="660.249" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Response Builder</text>
+</g>
+<g class="node" data-id="J" data-label="Client Response" data-shape="rectangle">
+  <rect x="159.78225000000003" y="726.699" width="137.539" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="228.55175000000003" y="745.149" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Client Response</text>
+</g>
+</svg>

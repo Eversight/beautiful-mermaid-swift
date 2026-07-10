@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 264.88 277.8" width="264.88" height="277.8" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8.0" markerHeight="5.0" refX="7.0" refY="2.5" orient="auto">
+    <polygon points="0 0, 8.0 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8.0" markerHeight="5.0" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8.0 0, 0 2.5, 8.0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<polyline class="edge" data-from="_start" data-to="Idle" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="54.0,152.9 54.0,164.9 91.96849999999999,164.9 91.96849999999999,200.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="Idle" data-to="Running" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="start" points="107.643,200.9 107.643,164.9 112.0,164.9 112.0,88.9 132.15725,88.9 132.15725,76.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="Running" data-to="Idle" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="stop" points="154.87125,76.9 154.87125,88.9 154.034,88.9 154.034,164.9 123.3175,164.9 123.3175,200.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="Running" data-to="_end" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="177.58525,76.9 177.58525,88.9 210.88,88.9 210.88,124.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<g class="edge-label" data-from="Idle" data-to="Running" data-label="start">
+  <rect x="92.0" y="123.75" width="39.034000000000006" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="111.517" y="138.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">start</text>
+</g>
+<g class="edge-label" data-from="Running" data-to="Idle" data-label="stop">
+  <rect x="135.034" y="123.75" width="37.846000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="153.957" y="138.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">stop</text>
+</g>
+<g class="node" data-id="_start" data-label="" data-shape="state-start">
+  <circle cx="54.0" cy="138.9" r="12.0" fill="#27272A" stroke="none" />
+</g>
+<g class="node" data-id="Idle" data-label="Idle" data-shape="rounded">
+  <rect x="76.294" y="200.9" width="62.69799999999999" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="107.643" y="219.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Idle</text>
+</g>
+<g class="node" data-id="Running" data-label="Running" data-shape="rounded">
+  <rect x="109.44325" y="40.0" width="90.856" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="154.87125" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Running</text>
+</g>
+<g class="node" data-id="_end" data-label="" data-shape="state-end">
+  <circle cx="210.88" cy="138.9" r="12.0" fill="none" stroke="#27272A" stroke-width="1.5" />
+  <circle cx="210.88" cy="138.9" r="8.0" fill="#27272A" stroke="none" />
+</g>
+</svg>

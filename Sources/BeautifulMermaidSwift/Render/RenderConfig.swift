@@ -1,5 +1,12 @@
 import Foundation
 import CoreGraphics
+#if targetEnvironment(macCatalyst)
+import UIKit
+#elseif canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 public struct RenderConfig: Sendable {
 
@@ -142,7 +149,7 @@ public struct RenderConfig: Sendable {
     }
 
     public func estimateTextWidth(_ text: String, fontSize: CGFloat, fontWeight: Int) -> CGFloat {
-        return original_src_text_metrics.measureTextWidth(text, fontSize: Double(fontSize), fontWeight: fontWeight)
+        return TextMetrics.measureTextWidth(text, fontSize: Double(fontSize), fontWeight: fontWeight)
     }
 
     public func estimateMonoTextWidth(_ text: String, fontSize: CGFloat) -> CGFloat {

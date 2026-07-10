@@ -1,10 +1,5 @@
 import Foundation
-import ElkSwift
-
-internal enum _ElkBridge {
-    // Keeps explicit linkage to ElkSwift runtime.
-    static var version: String { ElkSwift.version }
-}
+import LayoutKernel
 
 public enum MermaidParser {
     private static func _diagramLines(from source: String) -> [String] {
@@ -23,7 +18,6 @@ public enum MermaidParser {
     }
 
     public static func parse(_ source: String) throws -> MermaidGraph {
-        _ = _ElkBridge.version
         let decoded = _decodeXMLEntities(source)
         let lines = _diagramLines(from: decoded)
         let firstLine = lines.first?.lowercased() ?? ""

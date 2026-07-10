@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 221.39999999999998 336" width="221.39999999999998" height="336" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  .mono { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+  }
+</style>
+<defs>
+  <marker id="cls-inherit" markerWidth="12" markerHeight="10" refX="12" refY="5" orient="auto-start-reverse">
+    <polygon points="0 0, 12 5, 0 10" fill="#FFFFFF" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="cls-composition" markerWidth="12" markerHeight="10" refX="0" refY="5" orient="auto-start-reverse">
+    <polygon points="6 0, 12 5, 6 10, 0 5" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="1" />
+  </marker>
+  <marker id="cls-aggregation" markerWidth="12" markerHeight="10" refX="0" refY="5" orient="auto-start-reverse">
+    <polygon points="6 0, 12 5, 6 10, 0 5" fill="#FFFFFF" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="cls-arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto-start-reverse">
+    <polyline points="0 0, 8 3, 0 6" fill="none" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+</defs>
+<polyline class="class-relationship" data-from="Animal" data-to="Dog" data-type="inheritance" data-marker-at="from" points="110.69999999999999,148.0 110.69999999999999,208.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-start="url(#cls-inherit)" />
+<g class="class-node" data-id="Animal" data-label="Animal">
+  <rect x="40.0" y="40.0" width="141.39999999999998" height="108.0" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="40.0" y="40.0" width="141.39999999999998" height="32.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="110.69999999999999" y="56.0" text-anchor="middle" font-size="13.0" font-weight="700" fill="#27272A" dy="4.55">Animal</text>
+  <line x1="40.0" y1="72.0" x2="181.39999999999998" y2="72.0" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="48.0" y="86.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">name</tspan><tspan fill="#666666">: </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">String</tspan></text>
+  <text x="48.0" y="106.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">age</tspan><tspan fill="#666666">: </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">int</tspan></text>
+  <line x1="40.0" y1="120.0" x2="181.39999999999998" y2="120.0" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="48.0" y="134.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">makeSound()</tspan><tspan fill="#666666">: </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">void</tspan></text>
+</g>
+<g class="class-node" data-id="Dog" data-label="Dog">
+  <rect x="50.69999999999999" y="208.0" width="120.0" height="88.0" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="50.69999999999999" y="208.0" width="120.0" height="32.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="110.69999999999999" y="224.0" text-anchor="middle" font-size="13.0" font-weight="700" fill="#27272A" dy="4.55">Dog</text>
+  <line x1="50.69999999999999" y1="240.0" x2="170.7" y2="240.0" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="58.69999999999999" y="254.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">breed</tspan><tspan fill="#666666">: </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">String</tspan></text>
+  <line x1="50.69999999999999" y1="268.0" x2="170.7" y2="268.0" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="58.69999999999999" y="282.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">bark()</tspan><tspan fill="#666666">: </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">void</tspan></text>
+</g>
+</svg>

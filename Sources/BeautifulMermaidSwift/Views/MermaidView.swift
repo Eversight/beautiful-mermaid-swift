@@ -5,7 +5,13 @@ import QuartzCore
 #if targetEnvironment(macCatalyst) || canImport(UIKit)
 import UIKit
 
-/// A UIView subclass that renders Mermaid diagrams
+/// A UIView that renders Mermaid diagrams.
+///
+/// Rendering happens off the main thread: parse/layout runs on a background
+/// queue (`MermaidLayer`), and the diagram is rasterized there too, then
+/// composited by Core Animation via `layer.contents`. The main thread never
+/// replays the vector command stream (which costs 3.9–19 ms per invalidation
+/// for an 80-node diagram); its per-update share is an image assignment.
 public class MermaidView: UIView {
 
     public let mermaidLayer: MermaidLayer
@@ -20,6 +26,7 @@ public class MermaidView: UIView {
         set {
             mermaidLayer.theme = newValue
             backgroundColor = newValue.background
+            updateContents()
         }
     }
 
@@ -30,6 +37,11 @@ public class MermaidView: UIView {
 
     public var parseError: Error? { mermaidLayer.parseError }
     public var diagramBounds: CGRect { mermaidLayer.diagramBounds }
+
+    /// Invoked on the main thread whenever preparation state changes
+    /// (geometry published or a parse error surfaced). SwiftUI wrappers use
+    /// this instead of polling on every update cycle.
+    public var onStateChange: ((Error?, CGRect) -> Void)?
 
     public override init(frame: CGRect) {
         self.mermaidLayer = MermaidLayer()
@@ -45,47 +57,21 @@ public class MermaidView: UIView {
 
     private func commonInit() {
         backgroundColor = mermaidLayer.theme.background
-        contentMode = .redraw
+        // The rasterized diagram is aspect-fitted and centered by Core
+        // Animation; interim resizes GPU-scale the existing image and a
+        // crisp re-raster follows at the new size.
+        layer.contentsGravity = .resizeAspect
         mermaidLayer.onPrepareComplete = { [weak self] in
-            self?.invalidateIntrinsicContentSize()
-            self?.setNeedsDisplay()
+            guard let self else { return }
+            self.invalidateIntrinsicContentSize()
+            self.contentsDidChange()
+            self.onStateChange?(self.parseError, self.diagramBounds)
         }
-    }
-
-    public override func draw(_ rect: CGRect) {
-        guard let ctx = UIGraphicsGetCurrentContext() else { return }
-        let viewBounds = bounds
-
-        if !theme.transparent {
-            ctx.setFillColor(theme.background.cgColor)
-            ctx.fill(viewBounds)
-        }
-
-        guard let prepared = mermaidLayer.preparedDiagram else { return }
-        let diagBounds = prepared.bounds
-        guard diagBounds.width > 0, diagBounds.height > 0 else { return }
-        guard viewBounds.width > 0, viewBounds.height > 0 else { return }
-
-        let scaleX = viewBounds.width / diagBounds.width
-        let scaleY = viewBounds.height / diagBounds.height
-        let fitScale = min(scaleX, scaleY)
-
-        let scaledWidth = diagBounds.width * fitScale
-        let scaledHeight = diagBounds.height * fitScale
-        let offsetX = (viewBounds.width - scaledWidth) / 2
-        let offsetY = (viewBounds.height - scaledHeight) / 2
-
-        ctx.saveGState()
-        ctx.translateBy(x: offsetX, y: offsetY)
-        ctx.scaleBy(x: fitScale, y: fitScale)
-        ctx.translateBy(x: -diagBounds.minX, y: -diagBounds.minY)
-        prepared.render(ctx, diagBounds)
-        ctx.restoreGState()
     }
 
     public override func layoutSubviews() {
         super.layoutSubviews()
-        setNeedsDisplay()
+        updateContents()
     }
 
     public override var intrinsicContentSize: CGSize {
@@ -100,12 +86,48 @@ public class MermaidView: UIView {
         let fitScale = min(size.width / db.width, size.height / db.height)
         return CGSize(width: db.width * fitScale, height: db.height * fitScale)
     }
+
+    private func contentsDidChange() {
+        if mermaidLayer.preparedDiagram == nil {
+            layer.contents = nil
+            return
+        }
+        updateContents()
+    }
+
+    private func updateContents() {
+        let db = diagramBounds
+        let viewBounds = bounds
+        guard mermaidLayer.preparedDiagram != nil,
+              db.width > 0, db.height > 0,
+              viewBounds.width > 0, viewBounds.height > 0 else { return }
+
+        let fitScale = min(viewBounds.width / db.width, viewBounds.height / db.height)
+        let deviceScale = window?.screen.scale ?? UIScreen.main.scale
+        let pixelSize = CGSize(
+            width: db.width * fitScale * deviceScale,
+            height: db.height * fitScale * deviceScale)
+
+        mermaidLayer.requestRaster(pixelSize: pixelSize) { [weak self] image in
+            guard let self else { return }
+            self.layer.contentsScale = deviceScale
+            self.layer.contents = image
+        }
+    }
 }
 
 #elseif canImport(AppKit)
 import AppKit
 
-/// An NSView subclass that renders Mermaid diagrams
+/// An NSView that renders Mermaid diagrams.
+///
+/// Rendering happens off the main thread: parse/layout runs on a background
+/// queue (`MermaidLayer`), and the diagram is rasterized there too, then
+/// composited by Core Animation via `layer.contents`. The main thread never
+/// replays the vector command stream (which costs 3.9–19 ms per invalidation
+/// for an 80-node diagram); its per-update share is an image assignment.
+/// During live window resize the existing raster is GPU-stretched and a crisp
+/// re-raster follows on settle.
 public class MermaidView: NSView {
 
     public let mermaidLayer: MermaidLayer
@@ -120,6 +142,7 @@ public class MermaidView: NSView {
         set {
             mermaidLayer.theme = newValue
             layer?.backgroundColor = newValue.background.cgColor
+            updateContents()
         }
     }
 
@@ -130,6 +153,11 @@ public class MermaidView: NSView {
 
     public var parseError: Error? { mermaidLayer.parseError }
     public var diagramBounds: CGRect { mermaidLayer.diagramBounds }
+
+    /// Invoked on the main thread whenever preparation state changes
+    /// (geometry published or a parse error surfaced). SwiftUI wrappers use
+    /// this instead of polling on every update cycle.
+    public var onStateChange: ((Error?, CGRect) -> Void)?
 
     public override init(frame frameRect: NSRect) {
         self.mermaidLayer = MermaidLayer()
@@ -145,50 +173,59 @@ public class MermaidView: NSView {
 
     private func commonInit() {
         wantsLayer = true
+        layerContentsRedrawPolicy = .never
+        layer?.contentsGravity = .resizeAspect
         layer?.backgroundColor = mermaidLayer.theme.background.cgColor
         mermaidLayer.onPrepareComplete = { [weak self] in
-            self?.invalidateIntrinsicContentSize()
-            self?.needsDisplay = true
+            guard let self else { return }
+            self.invalidateIntrinsicContentSize()
+            self.contentsDidChange()
+            self.onStateChange?(self.parseError, self.diagramBounds)
         }
     }
 
-    public override func draw(_ dirtyRect: NSRect) {
-        guard let ctx = NSGraphicsContext.current?.cgContext else { return }
-        let rect = bounds
-
-        if !theme.transparent {
-            ctx.setFillColor(theme.background.cgColor)
-            ctx.fill(rect)
+    public override func layout() {
+        super.layout()
+        if !inLiveResize {
+            updateContents()
         }
+    }
 
-        guard let prepared = mermaidLayer.preparedDiagram else { return }
-        let diagBounds = prepared.bounds
-        guard diagBounds.width > 0, diagBounds.height > 0 else { return }
-        guard rect.width > 0, rect.height > 0 else { return }
-
-        let scaleX = rect.width / diagBounds.width
-        let scaleY = rect.height / diagBounds.height
-        let fitScale = min(scaleX, scaleY)
-
-        let scaledWidth = diagBounds.width * fitScale
-        let scaledHeight = diagBounds.height * fitScale
-        let offsetX = (rect.width - scaledWidth) / 2
-        let offsetY = (rect.height - scaledHeight) / 2
-
-        ctx.saveGState()
-        // Flip for AppKit (y=0 at bottom -> y=0 at top)
-        ctx.translateBy(x: 0, y: rect.height)
-        ctx.scaleBy(x: 1, y: -1)
-        // Apply centering and scale
-        ctx.translateBy(x: offsetX, y: offsetY)
-        ctx.scaleBy(x: fitScale, y: fitScale)
-        ctx.translateBy(x: -diagBounds.minX, y: -diagBounds.minY)
-        prepared.render(ctx, diagBounds)
-        ctx.restoreGState()
+    public override func viewDidEndLiveResize() {
+        super.viewDidEndLiveResize()
+        updateContents()
     }
 
     public override var intrinsicContentSize: NSSize {
         NSSize(width: diagramBounds.width, height: diagramBounds.height)
+    }
+
+    private func contentsDidChange() {
+        if mermaidLayer.preparedDiagram == nil {
+            layer?.contents = nil
+            return
+        }
+        updateContents()
+    }
+
+    private func updateContents() {
+        let db = diagramBounds
+        let viewBounds = bounds
+        guard mermaidLayer.preparedDiagram != nil,
+              db.width > 0, db.height > 0,
+              viewBounds.width > 0, viewBounds.height > 0 else { return }
+
+        let fitScale = min(viewBounds.width / db.width, viewBounds.height / db.height)
+        let deviceScale = window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 2.0
+        let pixelSize = CGSize(
+            width: db.width * fitScale * deviceScale,
+            height: db.height * fitScale * deviceScale)
+
+        mermaidLayer.requestRaster(pixelSize: pixelSize) { [weak self] image in
+            guard let self else { return }
+            self.layer?.contentsScale = deviceScale
+            self.layer?.contents = image
+        }
     }
 }
 

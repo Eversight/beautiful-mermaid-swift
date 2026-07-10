@@ -4,9 +4,9 @@
 
 **Render Mermaid diagrams as beautiful native images, SVGs, and ASCII art**
 
-A native Swift implementation of [beautiful-mermaid](https://github.com/lukilabs/beautiful-mermaid), powered by the [ELK](https://www.eclipse.org/elk/) layout engine.
+A native Swift implementation of [beautiful-mermaid](https://github.com/lukilabs/beautiful-mermaid), powered by a built-in layered graph layout engine.
 
-[![Swift 5.9+](https://img.shields.io/badge/Swift-5.9+-orange.svg)](https://swift.org)
+[![Swift 6.1+](https://img.shields.io/badge/Swift-6.1+-orange.svg)](https://swift.org)
 [![Platforms](https://img.shields.io/badge/Platforms-iOS%20|%20macOS%20|%20visionOS-blue.svg)](https://developer.apple.com)
 [![SPM Compatible](https://img.shields.io/badge/SPM-Compatible-brightgreen.svg)](https://swift.org/package-manager/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -15,7 +15,7 @@ A native Swift implementation of [beautiful-mermaid](https://github.com/lukilabs
 
 ## Overview
 
-BeautifulMermaid is a native Swift port of [beautiful-mermaid](https://github.com/lukilabs/beautiful-mermaid). Parse and render Mermaid diagrams without WebViews or JavaScript. Uses [elk-swift](https://github.com/lukilabs/elk-swift) for graph layout — a minimal Swift port of the Eclipse Layout Kernel.
+BeautifulMermaid is a native Swift implementation of [beautiful-mermaid](https://github.com/lukilabs/beautiful-mermaid). Parse and render Mermaid diagrams without WebViews or JavaScript. Graph layout is handled by `LayoutKernel`, the package's built-in layered layout engine (originally derived from the Eclipse Layout Kernel, since heavily reworked in Swift).
 
 ## Features
 
@@ -28,7 +28,7 @@ BeautifulMermaid is a native Swift port of [beautiful-mermaid](https://github.co
 - **CALayer rendering** — `MermaidLayer` for lightweight, direct Core Graphics rendering
 - **Async rendering** — All render methods available as `async` variants
 - **Pure Swift** — No WebView, no JavaScript
-- **Cross-platform** — iOS 15+, macOS 12+, Mac Catalyst 15+, visionOS 1.0+
+- **Cross-platform** — iOS 18+, macOS 15+, Mac Catalyst 18+, visionOS 2+
 
 ## Installation
 
@@ -667,8 +667,8 @@ Specify direction in your Mermaid code:
 
 ## Requirements
 
-- Swift 5.9+
-- iOS 15+ / macOS 12+ / Mac Catalyst 15+ / visionOS 1.0+
+- Swift 6.1+
+- iOS 18+ / macOS 15+ / Mac Catalyst 18+ / visionOS 2+
 
 ## License
 
@@ -677,5 +677,5 @@ MIT License — see [LICENSE](LICENSE) for details.
 ## Acknowledgments
 
 - [beautiful-mermaid](https://github.com/lukilabs/beautiful-mermaid) — Original TypeScript implementation by Craft
-- [elk-swift](https://github.com/lukilabs/elk-swift) — ELK layout engine, Swift port of Eclipse Layout Kernel
+- [Eclipse Layout Kernel](https://www.eclipse.org/elk/) — The layered layout algorithms `LayoutKernel` was originally derived from (EPL-2.0; see `Sources/LayoutKernel/LICENSE`)
 - [Mermaid](https://mermaid.js.org/) — Diagramming syntax specification

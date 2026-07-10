@@ -9,9 +9,21 @@ import AppKit
 #endif
 
 public final class MermaidImageRenderer {
-    public var theme: DiagramTheme
+    public var theme: DiagramTheme {
+        didSet { _cachedRenderer = nil }
+    }
     public var layoutConfig: LayoutConfig
     public var scale: CGFloat = 2.0
+
+    // The diagram renderer is theme-dependent but frame-independent; rebuilding
+    // it per render showed up as ~1/3 of a frame in profiles.
+    private var _cachedRenderer: DiagramRenderer?
+    private var _renderer: DiagramRenderer {
+        if let renderer = _cachedRenderer { return renderer }
+        let renderer = DiagramRenderer(theme: theme)
+        _cachedRenderer = renderer
+        return renderer
+    }
 
     public init(theme: DiagramTheme = .default, config: LayoutConfig = LayoutConfig()) {
         self.theme = theme
@@ -23,7 +35,7 @@ public final class MermaidImageRenderer {
         let graph = try MermaidParser.parse(source)
         let layout = GraphLayout(config: layoutConfig)
         let positioned = try layout.layout(graph)
-        let renderer = DiagramRenderer(theme: theme)
+        let renderer = _renderer
 
         let bounds = CGRect(x: 0, y: 0, width: max(1, positioned.width), height: max(1, positioned.height))
         return PreparedDiagram(bounds: bounds) { context, renderBounds in
@@ -39,7 +51,7 @@ public final class MermaidImageRenderer {
 
     /// Render a positioned graph to an image.
     public func renderImage(from positioned: PositionedGraph, scale overrideScale: CGFloat? = nil) -> BMImage? {
-        let renderer = DiagramRenderer(theme: theme)
+        let renderer = _renderer
         let bounds = CGRect(x: 0, y: 0, width: max(1, positioned.width), height: max(1, positioned.height))
         let prepared = PreparedDiagram(bounds: bounds) { context, renderBounds in
             renderer.render(positioned, in: context, bounds: renderBounds)
@@ -55,7 +67,6 @@ public final class MermaidImageRenderer {
 
     /// Render via SVG path (fallback for cases where SVG string output is needed).
     public func renderSVG(from source: String) throws -> String {
-        _ = _ElkBridge.version
         let options = RenderOptions(
             bg: _hex(theme.background),
             fg: _hex(theme.foreground),
@@ -68,8 +79,7 @@ public final class MermaidImageRenderer {
         )
 
         let svg = try renderMermaidSVG(source, options)
-        let resolvedSvg = _resolveSvgCssVariables(svg)
-        return _flattenKnownSvgTokens(resolvedSvg, theme: theme)
+        return _finalizeSvgColors(svg, theme: theme)
     }
 
     /// Render via SVG path to an image (legacy behavior).
@@ -144,7 +154,10 @@ public final class MermaidImageRenderer {
                   data: nil, width: width, height: height,
                   bitsPerComponent: 8, bytesPerRow: 0,
                   space: CGColorSpaceCreateDeviceRGB(),
-                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+                  // BGRA little-endian is the native format on Apple GPUs/displays;
+                  // RGBA big-endian forced a full-bitmap conversion pass
+                  // (CGSColorMaskCopyARGB8888 in profiles) on every makeImage.
+                  bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
               ) else { return nil }
 
         if !theme.transparent {
@@ -200,7 +213,10 @@ public final class MermaidImageRenderer {
                   data: nil, width: width, height: height,
                   bitsPerComponent: 8, bytesPerRow: 0,
                   space: CGColorSpaceCreateDeviceRGB(),
-                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+                  // BGRA little-endian is the native format on Apple GPUs/displays;
+                  // RGBA big-endian forced a full-bitmap conversion pass
+                  // (CGSColorMaskCopyARGB8888 in profiles) on every makeImage.
+                  bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
               ) else { return nil }
 
         if !theme.transparent {

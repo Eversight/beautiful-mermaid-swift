@@ -26,7 +26,6 @@ public final class DiagramRenderer {
     }
 
     public func render(_ positioned: PositionedGraph, in context: CGContext, bounds: CGRect) {
-        _ = _ElkBridge.version
         context.saveGState()
         defer { context.restoreGState() }
 
